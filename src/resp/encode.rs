@@ -16,14 +16,8 @@
     - set: "~<number-of-elements>\r\n<element-1>...<element-n>"
 */
 use crate::{
-    BulkString, RespArray, RespEncode, RespFrame, RespMap, RespNull, RespNullBulkString, RespSet, SimpleError, SimpleString
+    BulkString, RespArray, RespEncode, RespMap, RespNull, RespNullArray, RespNullBulkString, RespSet, SimpleError, SimpleString
 };
-
-impl RespEncode for RespFrame {
-    fn encode(self) -> Vec<u8> {
-        todo!()
-    }
-}
 
 // - simple string: "+Ok\r\n"
 impl RespEncode for SimpleString {
@@ -131,5 +125,25 @@ impl RespEncode for RespSet {
             buf.extend_from_slice(&item.encode());
         }
         buf
+    }
+}
+
+// - null array: "*-1\r\n"
+impl RespEncode for RespNullArray {
+    fn encode(self) -> Vec<u8> {
+        b"*-1\r\n".to_vec()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::RespFrame;
+
+    use super::*;
+
+    #[test]
+    fn test_simple_string_encode() {
+        let frame: RespFrame = SimpleString::new("OK".to_string()).into();
+        assert_eq!(frame.encode(), b"+OK\r\n");
     }
 }
