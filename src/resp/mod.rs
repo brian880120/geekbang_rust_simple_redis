@@ -1,8 +1,8 @@
 mod encode;
 mod decode;
 
-use std::collections::{HashMap, HashSet};
-use std::ops::Deref;
+use std::collections::HashMap;
+use std::ops::{Deref, DerefMut};
 use enum_dispatch::enum_dispatch;
 
 #[enum_dispatch]
@@ -15,6 +15,7 @@ pub trait RespDecode {
 }
 
 #[enum_dispatch(RespEncode)]
+#[derive(Debug, PartialEq)]
 pub enum RespFrame {
     SimpleString(SimpleString),
     Error(SimpleError),
@@ -30,23 +31,32 @@ pub enum RespFrame {
     Set(RespSet),
 }
 
+#[derive(Debug, PartialEq)]
 pub struct SimpleString(String);
 
+#[derive(Debug, PartialEq)]
 pub struct BulkString(Vec<u8>);
 
+#[derive(Debug, PartialEq)]
 pub struct SimpleError(String);
 
+#[derive(Debug, PartialEq)]
 pub struct RespNull;
 
+#[derive(Debug, PartialEq)]
 pub struct RespNullArray;
 
+#[derive(Debug, PartialEq)]
 pub struct RespNullBulkString;
 
+#[derive(Debug, PartialEq)]
 pub struct RespArray(Vec<RespFrame>);
 
+#[derive(Debug, PartialEq)]
 pub struct RespMap(HashMap<String, RespFrame>);
 
-pub struct RespSet(HashSet<RespFrame>);
+#[derive(Debug, PartialEq)]
+pub struct RespSet(Vec<RespFrame>);
 
 impl Deref for SimpleString {
     type Target = String;
@@ -88,8 +98,14 @@ impl Deref for RespMap {
     }
 }
 
+impl DerefMut for RespMap {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
 impl Deref for RespSet {
-    type Target = HashSet<RespFrame>;
+    type Target = Vec<RespFrame>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -121,13 +137,13 @@ impl RespArray {
 }
 
 impl RespMap {
-    pub fn new(s: impl Into<HashMap<String, RespFrame>>) -> Self {
-        RespMap(s.into())
+    pub fn new() -> Self {
+        RespMap(HashMap::new())
     }
 }
 
 impl RespSet {
-    pub fn new(s: impl Into<HashSet<RespFrame>>) -> Self {
+    pub fn new(s: impl Into<Vec<RespFrame>>) -> Self {
         RespSet(s.into())
     }
 }
